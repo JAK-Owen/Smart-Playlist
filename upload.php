@@ -21,7 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Access metadata
             $title = isset($fileInfo['tags']['id3v2']['title'][0]) ? $fileInfo['tags']['id3v2']['title'][0] : 'N/A';
             $artist = isset($fileInfo['tags']['id3v2']['artist'][0]) ? $fileInfo['tags']['id3v2']['artist'][0] : 'N/A';
-            $key = isset($fileInfo['comments']['key']) ? $fileInfo['comments']['key'][0] : 'N/A';
+
+            // Check if 'initial_key' is an array and concatenate values
+            $keyArray = isset($fileInfo['tags']['id3v2']['initial_key']) ? $fileInfo['tags']['id3v2']['initial_key'] : [];
+            $key = is_array($keyArray) ? implode(', ', $keyArray) : 'N/A';
+
             $bpm = isset($fileInfo['comments']['bpm']) ? $fileInfo['comments']['bpm'][0] : 'N/A';
 
             // Display metadata
