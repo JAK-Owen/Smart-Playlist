@@ -6,25 +6,32 @@ require '/Applications/XAMPP/xamppfiles/htdocs/TRACK-INFO-VIEWER/getid3/getid3.p
 // Include database configuration
 require 'config.php';
 
+// Function to get musical key notation
+function getMusicalKey($camelotKey)
+{
+    $keyMap = [
+        '1A' => 'Ab Major', '2A' => 'Eb Major', '3A' => 'Bb Major', '4A' => 'F Major', '5A' => 'C Major', '6A' => 'G Major',
+        '7A' => 'D Major', '8A' => 'A Major', '9A' => 'E Major', '10A' => 'B Major', '11A' => 'F# Major', '12A' => 'Db Major',
+        '1B' => 'F# Minor', '2B' => 'C# Minor', '3B' => 'G# Minor', '4B' => 'D# Minor', '5B' => 'A# Minor', '6B' => 'F# Minor',
+        '7B' => 'C# Minor', '8B' => 'G# Minor', '9B' => 'D# Minor', '10B' => 'A# Minor', '11B' => 'F# Minor', '12B' => 'Db Minor',
+    ];
+
+    return $keyMap[$camelotKey] ?? $camelotKey;
+}
+
 // Function to sort tracks by BPM and Key based on Camelot Wheel
 function sortByBPMAndKey($tracks)
 {
-    // Sort tracks by BPM in ascending order
     usort($tracks, function ($a, $b) {
         return $a['bpm'] <=> $b['bpm'];
     });
 
-    // Define the Camelot Wheel order
-    $camelotOrder = ['1A', '2A', '3A', '4A', '5A', '6A', '7A', '8A', '9A', '10A', '11A', '12A'];
-
-    // Sort tracks by key using the Camelot Wheel order
-    usort($tracks, function ($a, $b) use ($camelotOrder) {
-        $keyA = array_search($a['key'], $camelotOrder);
-        $keyB = array_search($b['key'], $camelotOrder);
-
-        // If keys are not found in the Camelot Wheel, maintain the original order
-        if ($keyA === false) $keyA = PHP_INT_MAX;
-        if ($keyB === false) $keyB = PHP_INT_MAX;
+    usort($tracks, function ($a, $b) {
+        $keyA = getMusicalKey($a['key']);
+        $keyB = getMusicalKey($b['key']);
+        
+        if ($keyA === $a['key']) $keyA = PHP_INT_MAX;
+        if ($keyB === $b['key']) $keyB = PHP_INT_MAX;
 
         return $keyA <=> $keyB;
     });
@@ -34,10 +41,8 @@ function sortByBPMAndKey($tracks)
 
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     // Check if files are selected
     if (isset($_FILES['musicFiles'])) {
-
         // Get the array of uploaded files
         $uploadedFiles = $_FILES['musicFiles'];
 
@@ -54,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Loop through each uploaded file
         foreach ($uploadedFiles['name'] as $key => $fileName) {
-
             // GetID3 initialization
             $getID3 = new getID3();
 
@@ -66,7 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $title = isset($fileInfo['tags']['id3v2']['title'][0]) ? $conn->real_escape_string($fileInfo['tags']['id3v2']['title'][0]) : 'N/A';
             $artist = isset($fileInfo['tags']['id3v2']['artist'][0]) ? $conn->real_escape_string($fileInfo['tags']['id3v2']['artist'][0]) : 'N/A';
 
-            // Check if 'initial_key' is an array and concatenate values
             $keyArray = isset($fileInfo['tags']['id3v2']['initial_key']) ? $fileInfo['tags']['id3v2']['initial_key'] : [];
             $key = is_array($keyArray) ? implode(', ', $keyArray) : 'N/A';
 
@@ -92,14 +95,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'key' => $key,
                 'bpm' => $bpm,
             ];
-
-            // Display metadata
-            echo "<h2>File Information:</h2>";
-            echo "<p>Title: $title</p>";
-            echo "<p>Artist: $artist</p>";
-            echo "<p>Key: $key</p>";
-            echo "<p>BPM: $bpm</p>";
-            echo "<hr>";
         }
 
         // Close the database connection
