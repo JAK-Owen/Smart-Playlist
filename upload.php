@@ -6,6 +6,32 @@ require '/Applications/XAMPP/xamppfiles/htdocs/TRACK-INFO-VIEWER/getid3/getid3.p
 // Include database configuration
 require 'config.php';
 
+// Function to sort tracks by BPM and Key based on Camelot Wheel
+function sortByBPMAndKey($tracks)
+{
+    // Sort tracks by BPM in ascending order
+    usort($tracks, function ($a, $b) {
+        return $a['bpm'] <=> $b['bpm'];
+    });
+
+    // Define the Camelot Wheel order
+    $camelotOrder = ['1A', '2A', '3A', '4A', '5A', '6A', '7A', '8A', '9A', '10A', '11A', '12A'];
+
+    // Sort tracks by key using the Camelot Wheel order
+    usort($tracks, function ($a, $b) use ($camelotOrder) {
+        $keyA = array_search($a['key'], $camelotOrder);
+        $keyB = array_search($b['key'], $camelotOrder);
+
+        // If keys are not found in the Camelot Wheel, maintain the original order
+        if ($keyA === false) $keyA = PHP_INT_MAX;
+        if ($keyB === false) $keyB = PHP_INT_MAX;
+
+        return $keyA <=> $keyB;
+    });
+
+    return $tracks;
+}
+
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -22,6 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
         }
+
+        // Array to store track information
+        $trackList = [];
 
         // Loop through each uploaded file
         foreach ($uploadedFiles['name'] as $key => $fileName) {
@@ -56,6 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "Error in prepared statement: " . $conn->error;
             }
 
+            // Add track information to the array
+            $trackList[] = [
+                'title' => $title,
+                'artist' => $artist,
+                'key' => $key,
+                'bpm' => $bpm,
+            ];
+
             // Display metadata
             echo "<h2>File Information:</h2>";
             echo "<p>Title: $title</p>";
@@ -67,6 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Close the database connection
         $conn->close();
+
+        // Sort tracks based on BPM and Key using the defined function
+        $sortedTracks = sortByBPMAndKey($trackList);
+
+        // Display sorted tracks
+        echo "<h2>Sorted Tracks:</h2>";
+        foreach ($sortedTracks as $track) {
+            echo "<p>Title: {$track['title']}, Key: {$track['key']}, BPM: {$track['bpm']}</p>";
+        }
 
     } else {
         // Display a message if no music files are selected
