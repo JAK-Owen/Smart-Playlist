@@ -103,11 +103,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Sort tracks based on BPM and Key using the defined function
         $sortedTracks = sortByBPMAndKey($trackList);
 
-        // Display sorted tracks
+        // Display sorted tracks in a table
         echo "<h2>Sorted Tracks:</h2>";
+        echo "<table border='1'>";
+        echo "<tr><th>Title</th><th>Key</th><th>BPM</th></tr>";
         foreach ($sortedTracks as $track) {
-            echo "<p>Title: {$track['title']}, Key: {$track['key']}, BPM: {$track['bpm']}</p>";
+            echo "<tr>";
+            echo "<td>{$track['title']}</td>";
+            echo "<td>{$track['key']}</td>";
+            echo "<td>{$track['bpm']}</td>";
+            echo "</tr>";
         }
+        echo "</table>";
 
     } else {
         // Display a message if no music files are selected
