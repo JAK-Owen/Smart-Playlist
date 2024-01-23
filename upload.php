@@ -6,23 +6,26 @@ require '/Applications/XAMPP/xamppfiles/htdocs/TRACK-INFO-VIEWER/getid3/getid3.p
 // Include database configuration
 require 'config.php';
 
-
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     // Check if files are selected
     if (isset($_FILES['musicFiles'])) {
+
+        // Get the array of uploaded files
         $uploadedFiles = $_FILES['musicFiles'];
 
         // Connect to the database
         $conn = new mysqli($servername, $username, $password, $dbname);
 
-        // Check the connection
+        // Check the database connection
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
         }
 
         // Loop through each uploaded file
         foreach ($uploadedFiles['name'] as $key => $fileName) {
+
             // GetID3 initialization
             $getID3 = new getID3();
 
@@ -40,9 +43,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $bpm = isset($fileInfo['comments']['bpm']) ? $fileInfo['comments']['bpm'][0] : 'N/A';
 
-            // Insert metadata into the database
-            $sql = "INSERT INTO tracks (title, artist, `key`, bpm) VALUES ('$title', '$artist', '$key', '$bpm')";
-            $result = $conn->query($sql);
+            // Insert metadata into the database using prepared statements
+            $stmt = $conn->prepare("INSERT INTO tracks (title, artist, `key`, bpm) VALUES (?, ?, ?, ?)");
+            
+            // Check if the prepared statement was successful
+            if ($stmt) {
+                $stmt->bind_param("ssss", $title, $artist, $key, $bpm);
+                $stmt->execute();
+                $stmt->close();
+            } else {
+                // Display an error message if the prepared statement fails
+                echo "Error in prepared statement: " . $conn->error;
+            }
 
             // Display metadata
             echo "<h2>File Information:</h2>";
@@ -55,7 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Close the database connection
         $conn->close();
+
     } else {
+        // Display a message if no music files are selected
         echo "Please select music files.";
     }
 }
