@@ -10,10 +10,10 @@ require 'config.php';
 function getMusicalKey($camelotKey)
 {
     $keyMap = [
-        '1A' => 'Ab Major', '2A' => 'Eb Major', '3A' => 'Bb Major', '4A' => 'F Major', '5A' => 'C Major', '6A' => 'G Major',
-        '7A' => 'D Major', '8A' => 'A Major', '9A' => 'E Major', '10A' => 'B Major', '11A' => 'F# Major', '12A' => 'Db Major',
-        '1B' => 'F# Minor', '2B' => 'C# Minor', '3B' => 'G# Minor', '4B' => 'D# Minor', '5B' => 'A# Minor', '6B' => 'F# Minor',
-        '7B' => 'C# Minor', '8B' => 'G# Minor', '9B' => 'D# Minor', '10B' => 'A# Minor', '11B' => 'F# Minor', '12B' => 'Db Minor',
+        '1A' => 'Ab Minor', '2A' => 'Eb Minor', '3A' => 'Bb Minor', '4A' => 'F Minor', '5A' => 'C Minor', '6A' => 'G Minor',
+        '7A' => 'D Minor', '8A' => 'A Minor', '9A' => 'E Minor', '10A' => 'B Minor', '11A' => 'F# Minor', '12A' => 'Db Minor',
+        '1B' => 'B Major', '2B' => 'F# Major', '3B' => 'Db Major', '4B' => 'Ab Major', '5B' => 'Eb Major', '6B' => 'Bb Major',
+        '7B' => 'F Major', '8B' => 'C Major', '9B' => 'G Major', '10B' => 'D Major', '11B' => 'A Major', '12B' => 'E Major',
     ];
 
     return $keyMap[$camelotKey] ?? $camelotKey;
@@ -22,21 +22,51 @@ function getMusicalKey($camelotKey)
 // Function to sort tracks by BPM and Key based on Camelot Wheel
 function sortByBPMAndKey($tracks)
 {
+    // Sort by BPM in descending order
     usort($tracks, function ($a, $b) {
-        return $a['bpm'] <=> $b['bpm'];
+        return $b['bpm'] <=> $a['bpm'];
     });
 
-    usort($tracks, function ($a, $b) {
-        $keyA = getMusicalKey($a['key']);
-        $keyB = getMusicalKey($b['key']);
-        
-        if ($keyA === $a['key']) $keyA = PHP_INT_MAX;
-        if ($keyB === $b['key']) $keyB = PHP_INT_MAX;
+    // Define a flag to check if a break should be added
+    $addBreak = false;
 
-        return $keyA <=> $keyB;
+    // Sort by Key
+    usort($tracks, function ($a, $b) use (&$addBreak) {
+        $bpmDiff = $b['bpm'] - $a['bpm'];
+
+        // If BPM values are equal, check for harmonic compatibility
+        if ($bpmDiff === 0 && !isCompatible($a['key'], $b['key'])) {
+            $addBreak = true;
+        }
+
+        // If BPM values are equal, return the result of the key comparison
+        return $bpmDiff ?: $a['key'] <=> $b['key'];
     });
+
+    // Insert an empty row if a break is detected
+    if ($addBreak) {
+        $tracks[] = ['title' => '', 'key' => '', 'bpm' => ''];
+    }
 
     return $tracks;
+}
+
+// Function to check if two keys are harmonically compatible
+function isCompatible($keyA, $keyB)
+{
+    $wheel = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+    // Extract numbers and letters from keys
+    preg_match('/(\d+)([A-B])/', $keyA, $matchesA);
+    preg_match('/(\d+)([A-B])/', $keyB, $matchesB);
+
+    $numberA = (int)$matchesA[1];
+    $numberB = (int)$matchesB[1];
+    $letterA = $matchesA[2];
+    $letterB = $matchesB[2];
+
+    // Check if numbers are the same and letters are the same or consecutive
+    return $numberA === $numberB && (abs(array_search($letterA, $wheel) - array_search($letterB, $wheel)) <= 1);
 }
 
 // Check if the form is submitted
@@ -77,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert metadata into the database using prepared statements
             $stmt = $conn->prepare("INSERT INTO tracks (title, artist, `key`, bpm) VALUES (?, ?, ?, ?)");
-            
+
             // Check if the prepared statement was successful
             if ($stmt) {
                 $stmt->bind_param("ssss", $title, $artist, $key, $bpm);
@@ -104,18 +134,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sortedTracks = sortByBPMAndKey($trackList);
 
         // Display sorted tracks in a table
-        echo "<h2>Sorted Tracks:</h2>";
-        echo "<table border='1'>";
-        echo "<tr><th>Title</th><th>Key</th><th>BPM</th></tr>";
+        echo "<html>";
+        echo "<head>";
+        echo "<link rel='stylesheet' type='text/css' href='styleSheet.css'>";
+        echo "</head>";
+        echo "<body>";
+
+        echo "<h2>Sorted Tracks</h2>";
+        echo "<table class='playlist-table'>";
+        echo "<tr class='header-column'><th>Title</th><th>Key</th><th>BPM</th></tr>";
+
         foreach ($sortedTracks as $track) {
             echo "<tr>";
-            echo "<td>{$track['title']}</td>";
-            echo "<td>{$track['key']}</td>";
-            echo "<td>{$track['bpm']}</td>";
+            echo "<td class='playlist-column'>{$track['title']}</td>";
+            echo "<td class='playlist-column'>{$track['key']}</td>";
+            echo "<td class='playlist-column'>{$track['bpm']}</td>";
             echo "</tr>";
         }
-        echo "</table>";
 
+        echo "</table>"; 
+
+        echo "</body>";
+        echo "</html>";
     } else {
         // Display a message if no music files are selected
         echo "Please select music files.";

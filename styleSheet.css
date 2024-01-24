@@ -1,4 +1,36 @@
 body {
-   background-color: #333333;
+   background-color: #555555;
    color: #ffffff;
+   padding: 20px; 
+   margin: 200px;
+   border: solid 20px #ffffff;
+}
+
+h2 {
+   text-align: center; 
+   padding: 20px; 
+   font-size: 40px;
+}
+
+form {
+   text-align: center; 
+}
+
+
+.playlist-table {
+   margin-top: 20px;
+   width: 100%; 
+   box-sizing: border-box; 
+}
+
+.playlist-column {
+   padding: 10px; 
+   font-size: 15px;
+   text-align: center; 
+   border-bottom: 2px solid #ffffff;
+}
+
+.header-column {
+   font-size: 30px;
+   
 }
