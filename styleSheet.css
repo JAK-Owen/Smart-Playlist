@@ -1,36 +1,55 @@
 body {
-   background-color: #555555;
-   color: #ffffff;
-   padding: 20px; 
-   margin: 200px;
-   border: solid 20px #ffffff;
+   background-color: #000000;
+   color: #fff;
+   padding: 200px;
+   margin: 20px; 
+   height: auto;
+   font-family: Arial, Helvetica, sans-serif;
+   font-weight: 200;
 }
 
 h2 {
-   text-align: center; 
-   padding: 20px; 
-   font-size: 40px;
+   text-align: center;
+   padding: 20px;
+   font-size: 36px; 
 }
 
 form {
-   text-align: center; 
+   text-align: center;
 }
-
 
 .playlist-table {
    margin-top: 20px;
-   width: 100%; 
-   box-sizing: border-box; 
+   width: 100%;
+   box-sizing: border-box;
+   border-collapse: collapse; 
 }
 
 .playlist-column {
-   padding: 10px; 
-   font-size: 15px;
-   text-align: center; 
-   border-bottom: 2px solid #ffffff;
+   padding: 15px; 
+   font-size: 18px; 
+   text-align: center;
+   border-bottom: 1px solid #fff; 
 }
 
 .header-column {
-   font-size: 30px;
-   
+   font-size: 24px; 
+}
+
+input {
+   background-color:#000000;
+   color: #fff;
+   font-family: Arial, Helvetica, sans-serif;
+   font-weight: 200;
+   box-shadow: none;
+   padding: 80px;
+}
+
+#music-files {
+   background-color:#000000;
+   color: #fff;
+   font-family: Arial, Helvetica, sans-serif;
+   font-weight: 200;
+   box-shadow: none;
+   padding: 80px;
 }

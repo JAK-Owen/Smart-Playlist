@@ -31,28 +31,29 @@ function isCompatible($keyA, $keyB) {
 
 // Function to sort tracks based on BPM and Key
 function sortByBPMAndKey($tracks) {
-    // Sort by BPM in descending order
+    // Sort by BPM and Key
     usort($tracks, function ($a, $b) {
-        return $b['bpm'] <=> $a['bpm'];
+        $bpmDiff = $b['bpm'] - $a['bpm'];
+
+        // If BPM values are equal, check for harmonic compatibility
+        if ($bpmDiff === 0) {
+            return isCompatible($a['key'], $b['key']) ? $a['key'] <=> $b['key'] : 0;
+        }
+
+        return $bpmDiff;
     });
 
     // Define a flag to check if a break should be added
     $addBreak = false;
 
-    // Sort by Key
-    usort($tracks, function ($a, $b) use (&$addBreak) {
-        $bpmDiff = $b['bpm'] - $a['bpm'];
-
-        // If BPM values are equal, check for harmonic compatibility
-        if ($bpmDiff === 0 && !isCompatible($a['key'], $b['key'])) {
-            $addBreak = true;
-        }
-
-        // If BPM values are equal, return the result of the key comparison
-        return $bpmDiff ?: $a['key'] <=> $b['key'];
-    });
-
     // Insert an empty row if a break is detected
+    foreach ($tracks as $key => $track) {
+        if ($key > 0 && $track['bpm'] !== $tracks[$key - 1]['bpm']) {
+            $addBreak = true;
+            break;
+        }
+    }
+
     if ($addBreak) {
         $tracks[] = ['title' => '', 'key' => '', 'bpm' => ''];
     }
@@ -77,8 +78,8 @@ echo "</head>";
 echo "<body>";
 
 echo "<h2>Sorted Tracks</h2>";
-echo "<form method='post' action='refine.php'>";
-echo "<input type='submit' name='refinePlaylist' value='Refine Playlist'>";
+// echo "<form method='post' action='refine.php'>";
+// echo "<input type='submit' name='refinePlaylist' value='Refine Playlist'>";
 echo "</form>";
 echo "<table class='playlist-table'>";
 echo "<tr class='header-column'><th>Title</th><th>Key</th><th>BPM</th></tr>";
