@@ -11,11 +11,12 @@
     <h2>Upload Tracks</h2>
 
 
+
     
     <form action="upload.php" method="post" enctype="multipart/form-data">
-        <input type="file" name="musicFiles[]" id="musicFiles" accept=".mp3, .wav, .ogg" multiple required>
+        <input type="file" value="Import tracks" name="musicFiles[]" id="musicFiles" accept=".mp3, .wav, .ogg" multiple required>
         <br>
-        <input type="submit" value="Upload">
+        <input type="submit" value="Build Playlist">
     </form>
 
 </body>

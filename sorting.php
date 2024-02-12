@@ -4,6 +4,12 @@ ini_set('display_errors', 1);
 
 require 'database.php';  // Include database.php to access functions
 
+echo "<html>";
+echo "<head>";
+echo "<link rel='stylesheet' type='text/css' href='styleSheet.css'>";
+echo "</head>";
+echo "<body>";
+
 // Function to check if two keys are harmonically compatible
 function isCompatible($keyA, $keyB) {
     $wheel = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
